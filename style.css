@@ -10,3 +10,25 @@
 .drawer-menu button{display:flex;align-items:center;gap:12px}.drawer-menu .settings{margin-top:18px}.gooey-nav button{display:flex;align-items:center;gap:8px}.dock-item{position:relative}.dock-icon{font-size:17px}.hero{position:relative;z-index:1}.app{position:relative;z-index:2}.auth-screen{position:relative;z-index:10}
 .no-aurora #aurora,.no-aurora .aurora-overlay{display:none}
 @media(max-width:720px){.topbar{padding:10px 12px}.brand{font-size:18px}.auth-box{padding:24px}}
+
+
+/* Menu icon style — inspired by the clean MyHub V1 / reference layout */
+.menu-trigger{font-size:20px;display:grid;place-items:center}
+.drawer{width:min(390px,92vw);padding:22px 24px;background:rgba(3,13,27,.96)}
+.drawer-head{margin:42px 0 28px}
+.drawer-menu{gap:2px}
+.drawer-menu button{min-height:58px;display:flex;align-items:center;gap:18px;padding:10px 8px;border:0;background:transparent;border-radius:10px;color:#f4f8ff;font-size:20px;font-weight:400}
+.drawer-menu button:hover,.drawer-menu button:focus-visible{background:rgba(70,145,255,.09);outline:none}
+.drawer-menu .menu-icon{width:32px;min-width:32px;height:32px;display:grid;place-items:center;font-size:22px;color:#f2f6fc}
+.drawer-menu .menu-label{line-height:1.2}
+.drawer-menu .settings{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.11);border-radius:0}
+.drawer-menu .logout-item{color:#d8e1ed;margin-top:2px}
+.drawer-menu .logout-item .menu-icon{color:#c7d5e6}
+@media(max-width:720px){.drawer{padding:20px 22px}.drawer-menu button{font-size:20px;min-height:58px}.drawer-menu .menu-icon{font-size:21px}}
+
+/* Keep the animated Aurora visibly behind the interface */
+#aurora{z-index:0!important;display:block}
+.aurora-overlay{z-index:1!important}
+.topbar{z-index:20}
+.app,.auth-screen,.dock{z-index:10}
+.drawer-shade{z-index:40}.drawer{z-index:50}.modal{z-index:80}.toast{z-index:100}
