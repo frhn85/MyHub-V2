@@ -1,58 +1,31 @@
-const authScreen=document.getElementById("authScreen");
-const screens={home:document.getElementById("homeScreen"),games:document.getElementById("gamesScreen"),finance:document.getElementById("financeScreen"),profile:document.getElementById("profileScreen"),settings:document.getElementById("settingsScreen")};
-const form=document.getElementById("authForm"), authButton=document.getElementById("authButton"), message=document.getElementById("authMessage");
-let mode="login";
-
-document.querySelectorAll(".tab").forEach(tab=>tab.addEventListener("click",()=>{
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  tab.classList.add("active"); mode=tab.dataset.mode;
-  authButton.textContent=mode==="login"?"Masuk":"Buat akun"; message.textContent="";
-}));
-
-function getAccount(){try{return JSON.parse(localStorage.getItem("myhubV2Account")||"null")}catch{return null}}
-function setSession(email){localStorage.setItem("myhubV2Session",email)}
-function getSession(){return localStorage.getItem("myhubV2Session")}
-
-function show(page){
-  Object.values(screens).forEach(s=>s.classList.add("hidden"));
-  screens[page].classList.remove("hidden");
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.page===page));
-  const account=getAccount();
-  if(account){
-    document.getElementById("profileEmail").textContent=account.email;
-    document.getElementById("settingsEmail").textContent=account.email;
-    document.getElementById("welcomeTitle").textContent="Welcome.";
-  }
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-function boot(){
-  const session=getSession();
-  if(session && getAccount()){authScreen.classList.add("hidden");show("home")}
-  else {authScreen.classList.remove("hidden");Object.values(screens).forEach(s=>s.classList.add("hidden"))}
-}
-form.addEventListener("submit",e=>{
-  e.preventDefault();
-  const email=document.getElementById("email").value.trim().toLowerCase();
-  const password=document.getElementById("password").value;
-  if(mode==="register"){
-    if(getAccount()){message.textContent="Akun demo sudah ada di browser ini.";return}
-    localStorage.setItem("myhubV2Account",JSON.stringify({email,password}));
-    setSession(email); message.textContent="Akun berhasil dibuat.";
-    setTimeout(()=>{authScreen.classList.add("hidden");show("home")},350);
-  }else{
-    const account=getAccount();
-    if(account && account.email===email && account.password===password){
-      setSession(email); authScreen.classList.add("hidden");show("home");
-    }else message.textContent="Email atau password belum cocok.";
-  }
-});
-document.addEventListener("click",e=>{
-  const target=e.target.closest("[data-page]");
-  if(target){const page=target.dataset.page;if(screens[page])show(page)}
-});
-document.getElementById("profileButton").addEventListener("click",()=>show("profile"));
-document.getElementById("logoutButton").addEventListener("click",()=>{
-  localStorage.removeItem("myhubV2Session");authScreen.classList.remove("hidden");show("home");message.textContent="";form.reset();
-});
-boot();
+const KEY='myhub-v2-data';
+const defaults={profile:{name:'MyHub User',info:'MyHub V2',photo:''},home:{title:'WELCOME TO MyHub V2',subtitle:'A small space for everyday things.'},aurora:true,animations:true,locked:{},password:'',notes:[],todos:[],finance:[],calendar:[],games:[{name:'Free Fire',link:'https://ff.garena.com/',icon:'🎮'},{name:'Mobile Legends',link:'https://m.mobilelegends.com/',icon:'⚔️'},{name:'Magic Chess',link:'https://m.mobilelegends.com/',icon:'♟️'},{name:'Block Blast',link:'https://blockblast.com/',icon:'🧩'}],music:[{title:'Spotify Track 1',link:'https://open.spotify.com/track/3rPtS4nfpy7PsARctAWpzd'},{title:'Spotify Track 2',link:'https://open.spotify.com/track/48BWWtyjFE2le9sIqJitoL'},{title:'Spotify Track 3',link:'https://open.spotify.com/track/3AAAGS7iM1ekDywqdYMJG2'},{title:'Spotify Track 4',link:'https://open.spotify.com/track/5gkTGkjFB5wAd3mSBEcQPY'}],gallery:[]};
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||structuredClone(defaults);function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+const nav=[['home','Home'],['game','Game'],['finance','Finance'],['contact','Contact'],['profile','Profile'],['settings','Settings']];
+let current='home';
+const $=s=>document.querySelector(s);function toast(t){let x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
+function fold(root=document){if(!data.animations)return;root.querySelectorAll('.fold-text').forEach(el=>{if(el.dataset.folded)return;let text=el.textContent;el.textContent='';[...text].forEach((c,i)=>{let s=document.createElement('span');s.className='fold-char';s.textContent=c===' '?'\u00a0':c;s.style.animationDelay=i*.025+'s';el.appendChild(s)});el.dataset.folded='1'})}
+function renderNav(){let n=$('#gooeyNav');n.innerHTML=nav.map(([id,label])=>`<button class="${id===current?'active':''}" onclick="go('${id}')">${label}</button>`).join('')}
+function renderDrawer(){let items=[['game','🎮 Game'],['calendar','📅 Kalender'],['notes','📝 Notes'],['todo','✅ Todo'],['finance','💰 Finance'],['locked','🔒 Aplikasi Terkunci'],['profile','👤 Account'],['settings','⚙️ Settings']];$('#drawerMenu').innerHTML=items.map(([id,l])=>`<button class="${id==='settings'?'settings':''}" onclick="closeDrawer();go('${id}')">${l}</button>`).join('');$('#accountName').textContent=data.profile.name||'Account';$('#accountInfo').textContent=data.profile.info||'MyHub V2'}
+function renderDock(){let items=[['home','⌂'],['game','🎮'],['profile','●'],['settings','⚙']];$('#dock').innerHTML=items.map(([id,ic])=>`<div class="dock-item-wrap"><span class="dock-label">${id[0].toUpperCase()+id.slice(1)}</span><button class="dock-item" onclick="go('${id}')">${ic}</button></div>`).join('');document.querySelectorAll('.dock-item').forEach((el,i)=>el.addEventListener('mousemove',e=>{let r=el.getBoundingClientRect(),d=Math.max(0,1-Math.abs(e.clientX-(r.left+r.width/2))/180);el.style.transform=`scale(${1+d*.42}) translateY(${-d*8}px)`}));document.querySelectorAll('.dock-item').forEach(el=>el.addEventListener('mouseleave',()=>el.style.transform=''))}
+function pageHead(t,p){return `<div class="page-head fold-text"><h1>${t}</h1><p>${p}</p></div>`}
+function home(){return `<section class="hero"><div><h1 class="fold-text">${esc(data.home.title)}</h1><p class="fold-text">${esc(data.home.subtitle)}</p></div></section>`}
+function game(){return pageHead('Game','Folder aplikasi game')+`<div class="grid">${data.games.map((g,i)=>`<div class="card glass"><div style="font-size:40px">${esc(g.icon||'🎮')}</div><h3 class="fold-text">${esc(g.name)}</h3><button class="btn" onclick="openGame(${i})">Buka</button></div>`).join('')}</div>`}
+function simpleList(type,title,desc){let arr=data[type];return pageHead(title,desc)+`<div class="glass card"><div class="form"><input class="input" id="new_${type}" placeholder="Tambah item..."><button class="btn" onclick="addItem('${type}')">Tambah</button></div><div class="list" style="margin-top:14px">${arr.map((x,i)=>`<div class="list-item"><span>${esc(typeof x==='string'?x:x.title||x.text||x.name||'Item')}</span><button class="btn danger" style="float:right" onclick="delItem('${type}',${i})">Hapus</button></div>`).join('')}</div></div>`}
+function finance(){return pageHead('Finance','Catatan keuangan')+simpleList('finance','Finance','')}
+function contact(){return pageHead('Contact','Hubungi pemilik MyHub V2')+`<div class="grid"><a class="card glass" style="color:white;text-decoration:none" href="https://wa.me/6283899019848" target="_blank"><h3>WhatsApp 1</h3><p class="muted">083899019848</p></a><a class="card glass" style="color:white;text-decoration:none" href="https://wa.me/6288212424587" target="_blank"><h3>WhatsApp 2</h3><p class="muted">088212424587</p></a></div>`}
+function profile(){return pageHead('Profile','Akun pengguna')+`<div class="glass card"><h2 class="fold-text">${esc(data.profile.name)}</h2><p class="muted">${esc(data.profile.info)}</p></div>`}
+function settings(){return pageHead('Settings','Edit isi dan tampilan MyHub V2')+`<div class="glass card"><div class="form"><label>Nama akun</label><input class="input" id="setName" value="${attr(data.profile.name)}"><label>Info akun</label><input class="input" id="setInfo" value="${attr(data.profile.info)}"><label>Judul Home</label><input class="input" id="setTitle" value="${attr(data.home.title)}"><label>Subtitle Home</label><input class="input" id="setSub" value="${attr(data.home.subtitle)}"><div class="row"><button class="btn" onclick="saveSettings()">Simpan</button><button class="btn" onclick="resetData()">Reset data</button></div><hr style="width:100%;border-color:var(--line)"><label><input type="checkbox" id="setAurora" ${data.aurora?'checked':''}> Aurora background</label><label><input type="checkbox" id="setAnim" ${data.animations?'checked':''}> FoldText animation</label><h3>Konten cepat</h3><button class="btn" onclick="go('notes')">Edit Notes</button><button class="btn" onclick="go('todo')">Edit Todo</button><button class="btn" onclick="go('calendar')">Edit Kalender</button><button class="btn" onclick="go('locked')">Aplikasi Terkunci</button></div></div>`}
+function notes(){return simpleList('notes','Notes','Simpan catatan di browser')};function todo(){return simpleList('todos','Todo','Daftar tugas')};function calendar(){return simpleList('calendar','Kalender','Agenda sederhana')}
+function music(){return pageHead('Music','Spotify')+`<div class="grid">${data.music.map(m=>`<div class="glass card"><h3>${esc(m.title)}</h3><iframe style="border-radius:12px;width:100%" src="https://open.spotify.com/embed/track/${m.link.split('/track/')[1]?.split('?')[0]||''}" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe></div>`).join('')}</div>`}
+function locked(){return pageHead('Aplikasi Terkunci','Pilih fitur yang memerlukan sandi')+`<div class="glass card"><div class="form"><input class="input" type="password" id="lockPass" placeholder="Buat/ganti sandi"><button class="btn" onclick="setPassword()">Simpan sandi</button><p class="muted">Aktifkan kunci per fitur:</p>${['game','notes','todo','finance','calendar','music'].map(x=>`<label><input type="checkbox" ${data.locked[x]?'checked':''} onchange="toggleLock('${x}',this.checked)"> ${x}</label>`).join('')}</div></div>`}
+function render(){renderNav();renderDrawer();renderDock();let pages={home,game,finance,contact,profile,settings,notes,todo,calendar,music,locked};$('#app').innerHTML=(pages[current]||home)();if(current==='finance'){}fold($('#app'));document.body.classList.toggle('no-aurora',!data.aurora)}
+function go(id){if(data.locked[id]&&id!=='locked'){let p=prompt('Masukkan sandi untuk membuka '+id);if(p!==data.password){toast('Sandi salah');return}}current=id;render();window.scrollTo({top:0,behavior:'smooth'})}
+function addItem(type){let v=$('#new_'+type).value.trim();if(!v)return;data[type].push(type==='finance'?{title:v}:v);save();render();toast('Ditambahkan')};function delItem(type,i){data[type].splice(i,1);save();render()}
+function saveSettings(){data.profile.name=$('#setName').value;data.profile.info=$('#setInfo').value;data.home.title=$('#setTitle').value;data.home.subtitle=$('#setSub').value;data.aurora=$('#setAurora').checked;data.animations=$('#setAnim').checked;save();render();toast('Settings tersimpan')}
+function setPassword(){let p=$('#lockPass').value.trim();if(p.length<4){toast('Sandi minimal 4 karakter');return}data.password=p;save();toast('Sandi tersimpan')};function toggleLock(k,v){data.locked[k]=v;save()};function resetData(){if(confirm('Reset semua data?')){data=structuredClone(defaults);save();render()}}
+function openGame(i){let g=data.games[i];if(g.link)window.open(g.link,'_blank')}
+function esc(x=''){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function attr(x=''){return esc(x)}
+function closeDrawer(){$('#drawer').classList.remove('open');$('#drawerShade').classList.remove('open')};$('#menuBtn').onclick=()=>{$('#drawer').classList.add('open');$('#drawerShade').classList.add('open')};$('#closeDrawer').onclick=closeDrawer;$('#drawerShade').onclick=closeDrawer;
+// Aurora-inspired WebGL background, self-contained for GitHub Pages
+const c=$('#aurora'),gl=c.getContext('webgl');let prog,buf;function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}function initAurora(){if(!gl)return;let vs=shader(gl.VERTEX_SHADER,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}');let fs=shader(gl.FRAGMENT_SHADER,'precision highp float;uniform float t;uniform vec2 r;float wave(vec2 p,float a,float b){return sin(p.x*a+t*b)*0.5+0.5;}void main(){vec2 uv=gl_FragCoord.xy/r;float n=wave(uv,7.,.35)+wave(uv.yx,5.,-.22);vec3 c1=vec3(.024,.714,.831),c2=vec3(.149,.435,.902),c3=vec3(.322,.153,1.);float f=smoothstep(.05,1.1,n/2.);vec3 col=mix(c1,c2,smoothstep(.2,.7,uv.x+f*.25));col=mix(col,c3,smoothstep(.45,1.,uv.y+f*.3));float glow=pow(max(0.,1.-distance(uv,vec2(.5,.45))*1.3),2.);gl_FragColor=vec4(col*(.15+glow*.5),1.);}');prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);resize();requestAnimationFrame(draw)}function resize(){c.width=innerWidth*devicePixelRatio;c.height=innerHeight*devicePixelRatio;gl.viewport(0,0,c.width,c.height)}function draw(t){if(!data.aurora){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT)}else{gl.useProgram(prog);gl.bindBuffer(gl.ARRAY_BUFFER,buf);let p=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(p);gl.vertexAttribPointer(p,2,gl.FLOAT,false,0,0);gl.uniform1f(gl.getUniformLocation(prog,'t'),t*.0007);gl.uniform2f(gl.getUniformLocation(prog,'r'),c.width,c.height);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}requestAnimationFrame(draw)}addEventListener('resize',resize);initAurora();render();
