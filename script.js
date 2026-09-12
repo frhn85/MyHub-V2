@@ -10,31 +10,7 @@ let current='home';
 const $=s=>document.querySelector(s);function toast(t){let x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
 function fold(root=document){if(!data.animations)return;root.querySelectorAll('.fold-text').forEach(el=>{if(el.dataset.folded)return;let text=el.textContent;el.textContent='';[...text].forEach((c,i)=>{let s=document.createElement('span');s.className='fold-char';s.textContent=c===' '?'\u00a0':c;s.style.animationDelay=i*.025+'s';el.appendChild(s)});el.dataset.folded='1'})}
 function icon(name){return `<i class="fa-solid ${name}"></i>`}
-let gooeyNavInstance;
-function renderNav(){
-  const items=nav.map(([id,label])=>({
-    label:`${icon(({home:'fa-house',search:'fa-magnifying-glass',contact:'fa-comments',settings:'fa-gear'})[id])}<span>${label}</span>`,
-    href:'#'+id,
-    id
-  }));
-  const activeIndex=Math.max(0,nav.findIndex(([id])=>id===current));
-  if(!gooeyNavInstance){
-    gooeyNavInstance=new GooeyNav($('#gooeyNav'),{
-      items,
-      particleCount:15,
-      particleDistances:[90,10],
-      particleR:100,
-      initialActiveIndex:activeIndex,
-      animationTime:600,
-      timeVariance:300,
-      colors:[1,2,3,1,2,3,1,4],
-      onSelect:(item)=>go(item.id)
-    });
-  }else{
-    gooeyNavInstance.items=items;
-    gooeyNavInstance.setActive(activeIndex);
-  }
-}
+function renderNav(){}
 function renderDrawer(){let items=[['game','fa-gamepad','Game'],['calendar','fa-calendar-days','Kalender'],['notes','fa-note-sticky','Notes'],['todo','fa-list-check','Todo'],['music','fa-music','Music'],['finance','fa-wallet','Finance'],['contact','fa-comments','Contact'],['profile','fa-user','Account'],['locked','fa-lock','Aplikasi Terkunci'],['settings','fa-gear','Settings']];$('#drawerMenu').innerHTML=items.map(([id,ic,l])=>`<button class="${id==='settings'?'settings':''}" onclick="closeDrawer();go('${id}')">${icon(ic)}<span>${l}</span></button>`).join('');$('#accountName').textContent=data.profile.name||'Account';$('#accountInfo').textContent=auth?.email||data.profile.info||'MyHub V2';$('#drawerMenu').insertAdjacentHTML('beforeend',`<button onclick="closeDrawer();logout()">${icon('fa-right-from-bracket')}<span>Keluar Akun</span></button>`)}
 function renderDock(){let items=[['home','fa-house','Home'],['quickaccess','fa-bolt','Quick Access'],['profile','fa-user','Account'],['settings','fa-gear','Settings']];$('#dock').innerHTML=items.map(([id,ic,label])=>`<div class="dock-item-wrap"><span class="dock-label">${label}</span><button class="dock-item" onclick="${id==='quickaccess'?'openQuickAccess()':`go('${id}')`}"><span class="dock-icon">${icon(ic)}</span></button></div>`).join('');document.querySelectorAll('.dock-item').forEach((el,i)=>el.addEventListener('mousemove',e=>{let r=el.getBoundingClientRect(),d=Math.max(0,1-Math.abs(e.clientX-(r.left+r.width/2))/180);el.style.transform=`scale(${1+d*.42}) translateY(${-d*8}px)`}));document.querySelectorAll('.dock-item').forEach(el=>el.addEventListener('mouseleave',()=>el.style.transform=''))}
 function pageHead(t,p){return `<div class="page-head fold-text"><h1>${t}</h1><p>${p}</p></div>`}
@@ -68,6 +44,12 @@ function saveSettings(){data.profile.name=$('#setName').value;data.profile.info=
 function setPassword(){let p=$('#lockPass').value.trim();if(p.length<4){toast('Sandi minimal 4 karakter');return}data.password=p;save();toast('Sandi tersimpan')};function toggleLock(k,v){data.locked[k]=v;save()};function resetData(){if(confirm('Reset semua data?')){data=structuredClone(defaults);save();render()}}
 function openGame(i){let g=data.games[i];if(g.link)window.open(g.link,'_blank')}
 function esc(x=''){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function attr(x=''){return esc(x)}
-function closeDrawer(){$('#drawer').classList.remove('open');$('#drawerShade').classList.remove('open')};$('#menuBtn').onclick=()=>{$('#drawer').classList.add('open');$('#drawerShade').classList.add('open')};$('#closeDrawer').onclick=closeDrawer;$('#drawerShade').onclick=closeDrawer;
+function closeDrawer(){$('#drawer').classList.remove('open');$('#drawerShade').classList.remove('open')}
+function toggleTheme(){document.body.classList.toggle('light-theme');localStorage.setItem('myhub-theme',document.body.classList.contains('light-theme')?'light':'dark')}
+$('#searchBtn').onclick=()=>go('search');
+$('#themeBtn').onclick=toggleTheme;
+$('#menuBtn').onclick=()=>{$('#drawer').classList.add('open');$('#drawerShade').classList.add('open')};
+$('#closeDrawer').onclick=closeDrawer;$('#drawerShade').onclick=closeDrawer;
+if(localStorage.getItem('myhub-theme')==='light')document.body.classList.add('light-theme');
 // Aurora-inspired WebGL background, self-contained for GitHub Pages
 const c=$('#aurora'),gl=c.getContext('webgl');let prog,buf;function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}function initAurora(){if(!gl)return;let vs=shader(gl.VERTEX_SHADER,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}');let fs=shader(gl.FRAGMENT_SHADER,'precision highp float;uniform float t;uniform vec2 r;float wave(vec2 p,float a,float b){return sin(p.x*a+t*b)*0.5+0.5;}void main(){vec2 uv=gl_FragCoord.xy/r;float n=wave(uv,7.,.35)+wave(uv.yx,5.,-.22);vec3 c1=vec3(.024,.714,.831),c2=vec3(.149,.435,.902),c3=vec3(.322,.153,1.);float f=smoothstep(.05,1.1,n/2.);vec3 col=mix(c1,c2,smoothstep(.2,.7,uv.x+f*.25));col=mix(col,c3,smoothstep(.45,1.,uv.y+f*.3));float glow=pow(max(0.,1.-distance(uv,vec2(.5,.45))*1.3),2.);gl_FragColor=vec4(col*(.15+glow*.5),1.);}');prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);resize();requestAnimationFrame(draw)}function resize(){c.width=innerWidth*devicePixelRatio;c.height=innerHeight*devicePixelRatio;gl.viewport(0,0,c.width,c.height)}function draw(t){if(!data.aurora){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT)}else{gl.useProgram(prog);gl.bindBuffer(gl.ARRAY_BUFFER,buf);let p=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(p);gl.vertexAttribPointer(p,2,gl.FLOAT,false,0,0);gl.uniform1f(gl.getUniformLocation(prog,'t'),t*.0007);gl.uniform2f(gl.getUniformLocation(prog,'r'),c.width,c.height);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}requestAnimationFrame(draw)}addEventListener('resize',resize);initAurora();render();

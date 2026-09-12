@@ -10,8 +10,12 @@
 <body>
 <canvas id="aurora"></canvas><div class="aurora-overlay"></div><div id="authRoot"></div>
 <header class="topbar">
-  <nav id="gooeyNav" class="gooey-nav" aria-label="Navigasi utama"></nav>
-  <button id="menuBtn" class="icon-btn" aria-label="Buka menu">☰</button>
+  <div class="brand fold-text"><span class="brand-logo" aria-hidden="true"><i class="fa-solid fa-atom"></i></span><span>MyHub V2</span></div>
+  <div class="top-actions">
+    <button id="searchBtn" class="top-icon-btn" aria-label="Search" title="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+    <button id="themeBtn" class="top-icon-btn" aria-label="Ubah tampilan" title="Ubah tampilan"><i class="fa-solid fa-sun"></i></button>
+    <button id="menuBtn" class="top-icon-btn" aria-label="Buka menu" title="Menu"><i class="fa-solid fa-bars"></i></button>
+  </div>
 </header>
 <main id="app" class="app"></main>
 <div id="toast" class="toast"></div>
