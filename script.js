@@ -1,23 +1,51 @@
 const KEY='myhub-v2-data';
 const AUTH_KEY='myhub-v2-auth';
-const defaults={profile:{name:'MyHub User',info:'MyHub V2',photo:''},home:{title:'WELCOME TO MyHub V2',subtitle:'A small space for everyday things.'},aurora:true,animations:true,locked:{},password:'',notes:[],todos:[],finance:[],calendar:[],games:[{name:'Free Fire',link:'https://ff.garena.com/',icon:'fa-gamepad'},{name:'Mobile Legends',link:'https://m.mobilelegends.com/',icon:'fa-shield-halved'},{name:'Magic Chess',link:'https://m.mobilelegends.com/',icon:'fa-chess-knight'},{name:'Block Blast',link:'https://blockblast.com/',icon:'fa-puzzle-piece'}],music:[{title:'Spotify Track 1',link:'https://open.spotify.com/track/3rPtS4nfpy7PsARctAWpzd'},{title:'Spotify Track 2',link:'https://open.spotify.com/track/48BWWtyjFE2le9sIqJitoL'},{title:'Spotify Track 3',link:'https://open.spotify.com/track/3AAAGS7iM1ekDywqdYMJG2'},{title:'Spotify Track 4',link:'https://open.spotify.com/track/5gkTGkjFB5wAd3mSBEcQPY'}],gallery:[]};
+const defaults={profile:{name:'MyHub User',info:'MyHub V2',photo:''},home:{title:'WELCOME TO MyHub V2',subtitle:'A small space for everyday things.'},aurora:true,animations:true,locked:{},password:'',notes:[],todos:[],finance:[],calendar:[],games:[{name:'Free Fire',link:'https://ff.garena.com/',icon:'🎮'},{name:'Mobile Legends',link:'https://m.mobilelegends.com/',icon:'⚔️'},{name:'Magic Chess',link:'https://m.mobilelegends.com/',icon:'♟️'},{name:'Block Blast',link:'https://blockblast.com/',icon:'🧩'}],music:[{title:'Spotify Track 1',link:'https://open.spotify.com/track/3rPtS4nfpy7PsARctAWpzd'},{title:'Spotify Track 2',link:'https://open.spotify.com/track/48BWWtyjFE2le9sIqJitoL'},{title:'Spotify Track 3',link:'https://open.spotify.com/track/3AAAGS7iM1ekDywqdYMJG2'},{title:'Spotify Track 4',link:'https://open.spotify.com/track/5gkTGkjFB5wAd3mSBEcQPY'}],gallery:[]};
 let data=JSON.parse(localStorage.getItem(KEY)||'null')||structuredClone(defaults);
 let auth=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function saveAuth(){localStorage.setItem(AUTH_KEY,JSON.stringify(auth))}
-const nav=[['home','Home'],['game','Game'],['finance','Finance'],['contact','Contact'],['profile','Profile'],['settings','Settings']];
+const nav=[['home','Home'],['search','Search'],['contact','Contact'],['settings','Settings']];
 let current='home';
 const $=s=>document.querySelector(s);function toast(t){let x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
 function fold(root=document){if(!data.animations)return;root.querySelectorAll('.fold-text').forEach(el=>{if(el.dataset.folded)return;let text=el.textContent;el.textContent='';[...text].forEach((c,i)=>{let s=document.createElement('span');s.className='fold-char';s.textContent=c===' '?'\u00a0':c;s.style.animationDelay=i*.025+'s';el.appendChild(s)});el.dataset.folded='1'})}
 function icon(name){return `<i class="fa-solid ${name}"></i>`}
-function renderNav(){let n=$('#gooeyNav');n.innerHTML=nav.map(([id,label])=>`<button class="${id===current?'active':''}" onclick="go('${id}')">${icon(({home:'fa-house',game:'fa-gamepad',finance:'fa-wallet',contact:'fa-comments',profile:'fa-user',settings:'fa-gear'})[id])}<span>${label}</span></button>`).join('')}
-function renderDrawer(){let items=[['game','fa-gamepad','Game'],['calendar','fa-calendar-days','Kalender'],['notes','fa-note-sticky','Notes'],['todo','fa-list-check','Todo'],['finance','fa-wallet','Finance'],['locked','fa-lock','Aplikasi Terkunci'],['profile','fa-user','Account'],['settings','fa-gear','Settings']];$('#drawerMenu').innerHTML=items.map(([id,ic,l])=>`<button class="${id==='settings'?'settings':''}" onclick="closeDrawer();go('${id}')"><span class="menu-icon">${icon(ic)}</span><span class="menu-label">${l}</span></button>`).join('');$('#accountName').textContent=data.profile.name||'Account';$('#accountInfo').textContent=auth?.email||data.profile.info||'MyHub V2';$('#drawerMenu').insertAdjacentHTML('beforeend',`<button class="logout-item" onclick="closeDrawer();logout()"><span class="menu-icon">${icon('fa-right-from-bracket')}</span><span class="menu-label">Keluar Akun</span></button>`)}
-function renderDock(){let items=[['home','fa-house'],['game','fa-gamepad'],['profile','fa-user'],['settings','fa-gear']];$('#dock').innerHTML=items.map(([id,ic])=>`<div class="dock-item-wrap"><span class="dock-label">${id[0].toUpperCase()+id.slice(1)}</span><button class="dock-item" onclick="go('${id}')"><span class="dock-icon">${icon(ic)}</span></button></div>`).join('');document.querySelectorAll('.dock-item').forEach((el,i)=>el.addEventListener('mousemove',e=>{let r=el.getBoundingClientRect(),d=Math.max(0,1-Math.abs(e.clientX-(r.left+r.width/2))/180);el.style.transform=`scale(${1+d*.42}) translateY(${-d*8}px)`}));document.querySelectorAll('.dock-item').forEach(el=>el.addEventListener('mouseleave',()=>el.style.transform=''))}
+let gooeyNavInstance;
+function renderNav(){
+  const items=nav.map(([id,label])=>({
+    label:`${icon(({home:'fa-house',search:'fa-magnifying-glass',contact:'fa-comments',settings:'fa-gear'})[id])}<span>${label}</span>`,
+    href:'#'+id,
+    id
+  }));
+  const activeIndex=Math.max(0,nav.findIndex(([id])=>id===current));
+  if(!gooeyNavInstance){
+    gooeyNavInstance=new GooeyNav($('#gooeyNav'),{
+      items,
+      particleCount:15,
+      particleDistances:[90,10],
+      particleR:100,
+      initialActiveIndex:activeIndex,
+      animationTime:600,
+      timeVariance:300,
+      colors:[1,2,3,1,2,3,1,4],
+      onSelect:(item)=>go(item.id)
+    });
+  }else{
+    gooeyNavInstance.items=items;
+    gooeyNavInstance.setActive(activeIndex);
+  }
+}
+function renderDrawer(){let items=[['game','fa-gamepad','Game'],['calendar','fa-calendar-days','Kalender'],['notes','fa-note-sticky','Notes'],['todo','fa-list-check','Todo'],['finance','fa-wallet','Finance'],['locked','fa-lock','Aplikasi Terkunci'],['profile','fa-user','Account'],['settings','fa-gear','Settings']];$('#drawerMenu').innerHTML=items.map(([id,ic,l])=>`<button class="${id==='settings'?'settings':''}" onclick="closeDrawer();go('${id}')">${icon(ic)}<span>${l}</span></button>`).join('');$('#accountName').textContent=data.profile.name||'Account';$('#accountInfo').textContent=auth?.email||data.profile.info||'MyHub V2';$('#drawerMenu').insertAdjacentHTML('beforeend',`<button onclick="closeDrawer();logout()">${icon('fa-right-from-bracket')}<span>Keluar Akun</span></button>`)}
+function renderDock(){let items=[['home','fa-house','Home'],['quickaccess','fa-bolt','Quick Access'],['profile','fa-user','Account'],['settings','fa-gear','Settings']];$('#dock').innerHTML=items.map(([id,ic,label])=>`<div class="dock-item-wrap"><span class="dock-label">${label}</span><button class="dock-item" onclick="${id==='quickaccess'?'openQuickAccess()':`go('${id}')`}"><span class="dock-icon">${icon(ic)}</span></button></div>`).join('');document.querySelectorAll('.dock-item').forEach((el,i)=>el.addEventListener('mousemove',e=>{let r=el.getBoundingClientRect(),d=Math.max(0,1-Math.abs(e.clientX-(r.left+r.width/2))/180);el.style.transform=`scale(${1+d*.42}) translateY(${-d*8}px)`}));document.querySelectorAll('.dock-item').forEach(el=>el.addEventListener('mouseleave',()=>el.style.transform=''))}
 function pageHead(t,p){return `<div class="page-head fold-text"><h1>${t}</h1><p>${p}</p></div>`}
 function home(){return `<section class="hero"><div><h1 class="fold-text">${esc(data.home.title)}</h1><p class="fold-text">${esc(data.home.subtitle)}</p></div></section>`}
 function game(){return pageHead('Game','Folder aplikasi game')+`<div class="grid">${data.games.map((g,i)=>`<div class="card glass"><div class="feature-icon" style="font-size:38px">${icon(({ 'Free Fire':'fa-fire','Mobile Legends':'fa-shield-halved','Magic Chess':'fa-chess-knight','Block Blast':'fa-cubes-stacked'})[g.name]||'fa-gamepad')}</div><h3 class="fold-text">${esc(g.name)}</h3><button class="btn" onclick="openGame(${i})">Buka</button></div>`).join('')}</div>`}
 function simpleList(type,title,desc){let arr=data[type];return pageHead(title,desc)+`<div class="glass card"><div class="form"><input class="input" id="new_${type}" placeholder="Tambah item..."><button class="btn" onclick="addItem('${type}')">Tambah</button></div><div class="list" style="margin-top:14px">${arr.map((x,i)=>`<div class="list-item"><span>${esc(typeof x==='string'?x:x.title||x.text||x.name||'Item')}</span><button class="btn danger" style="float:right" onclick="delItem('${type}',${i})">Hapus</button></div>`).join('')}</div></div>`}
-function finance(){return simpleList('finance','Finance','Catatan keuangan')}
+function finance(){return pageHead('Finance','Catatan keuangan')+simpleList('finance','Finance','')}
+function search(){return pageHead('Search','Cari fitur di MyHub V2')+`<div class="glass card"><div class="form"><input class="input" id="hubSearch" placeholder="Cari fitur..." oninput="filterFeatures(this.value)"></div><div class="grid" id="searchResults">${searchCards('')}</div></div>`}
+function searchCards(q){let features=[['Game','game','fa-gamepad'],['Finance','finance','fa-wallet'],['Contact','contact','fa-comments'],['Account','profile','fa-user'],['Notes','notes','fa-note-sticky'],['Todo','todo','fa-list-check'],['Kalender','calendar','fa-calendar-days'],['Music','music','fa-music'],['Settings','settings','fa-gear']];q=(q||'').toLowerCase();return features.filter(x=>x[0].toLowerCase().includes(q)).map(x=>`<button class="card glass" style="text-align:left;color:inherit" onclick="go('${x[1]}')">${icon(x[2])} <span style="margin-left:8px">${x[0]}</span></button>`).join('')||'<p class="muted">Fitur tidak ditemukan.</p>'}
+function filterFeatures(q){$('#searchResults').innerHTML=searchCards(q)}
+function openQuickAccess(){$('#drawer').classList.add('open');$('#drawerShade').classList.add('open')}
 function contact(){return pageHead('Contact','Hubungi pemilik MyHub V2')+`<div class="grid"><a class="card glass" style="color:white;text-decoration:none" href="https://wa.me/6283899019848" target="_blank"><h3>WhatsApp 1</h3><p class="muted">083899019848</p></a><a class="card glass" style="color:white;text-decoration:none" href="https://wa.me/6288212424587" target="_blank"><h3>WhatsApp 2</h3><p class="muted">088212424587</p></a></div>`}
 function profile(){return pageHead('Profile','Akun pengguna')+`<div class="glass card"><h2 class="fold-text">${esc(data.profile.name)}</h2><p class="muted">${esc(data.profile.info)}</p></div>`}
 function settings(){return pageHead('Settings','Edit isi dan tampilan MyHub V2')+`<div class="glass card"><div class="form"><label>Nama akun</label><input class="input" id="setName" value="${attr(data.profile.name)}"><label>Info akun</label><input class="input" id="setInfo" value="${attr(data.profile.info)}"><label>Judul Home</label><input class="input" id="setTitle" value="${attr(data.home.title)}"><label>Subtitle Home</label><input class="input" id="setSub" value="${attr(data.home.subtitle)}"><div class="row"><button class="btn" onclick="saveSettings()">Simpan</button><button class="btn" onclick="resetData()">Reset data</button></div><hr style="width:100%;border-color:var(--line)"><label><input type="checkbox" id="setAurora" ${data.aurora?'checked':''}> Aurora background</label><label><input type="checkbox" id="setAnim" ${data.animations?'checked':''}> FoldText animation</label><h3>Konten cepat</h3><button class="btn" onclick="go('notes')">Edit Notes</button><button class="btn" onclick="go('todo')">Edit Todo</button><button class="btn" onclick="go('calendar')">Edit Kalender</button><button class="btn" onclick="go('locked')">Aplikasi Terkunci</button></div></div>`}
@@ -32,7 +60,7 @@ function logout(){auth=null;localStorage.removeItem(AUTH_KEY);current='home';ren
 function render(){
  document.body.classList.toggle('no-aurora',!data.aurora);
  if(!auth){renderAuth();$('#app').innerHTML='';$('#gooeyNav').innerHTML='';$('#dock').innerHTML='';return}
- renderAuth(true);renderNav();renderDrawer();renderDock();let pages={home,game,finance,contact,profile,settings,notes,todo,calendar,music,locked};$('#app').innerHTML=(pages[current]||home)();fold($('#app'));
+ renderAuth(true);renderNav();renderDrawer();renderDock();let pages={home,search,game,finance,contact,profile,settings,notes,todo,calendar,music,locked};$('#app').innerHTML=(pages[current]||home)();fold($('#app'));
 }
 function go(id){if(data.locked[id]&&id!=='locked'){let p=prompt('Masukkan sandi untuk membuka '+id);if(p!==data.password){toast('Sandi salah');return}}current=id;render();window.scrollTo({top:0,behavior:'smooth'})}
 function addItem(type){let v=$('#new_'+type).value.trim();if(!v)return;data[type].push(type==='finance'?{title:v}:v);save();render();toast('Ditambahkan')};function delItem(type,i){data[type].splice(i,1);save();render()}
