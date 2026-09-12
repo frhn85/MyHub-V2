@@ -3,10 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071226">
   <title>MyHub V2</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>MyHub V2</h1>
-  <p>Website baru sedang dibuat.</p>
+  <div class="bg-glow glow-one"></div>
+  <div class="bg-glow glow-two"></div>
+
+  <main id="app">
+    <section id="authScreen" class="screen auth-screen">
+      <div class="glass auth-card">
+        <div class="brand-mark">M</div>
+        <p class="eyebrow">MYHUB V2</p>
+        <h1>Welcome back.</h1>
+        <p class="muted">Masuk ke hub pribadi lu.</p>
+
+        <div class="tabs">
+          <button class="tab active" data-mode="login">Masuk</button>
+          <button class="tab" data-mode="register">Daftar</button>
+        </div>
+
+        <form id="authForm">
+          <label>Email</label>
+          <input id="email" type="email" placeholder="nama@gmail.com" required>
+
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Password" minlength="6" required>
+
+          <button class="primary-btn" type="submit" id="authButton">Masuk</button>
+          <p id="authMessage" class="message"></p>
+        </form>
+
+        <p class="tiny-note">Akun demo tersimpan di browser ini. Untuk login sungguhan lintas perangkat, nanti perlu backend/auth service.</p>
+      </div>
+    </section>
+
+    <section id="homeScreen" class="screen home-screen hidden">
+      <header class="topbar glass">
+        <div>
+          <p class="eyebrow">MYHUB V2</p>
+          <h2>Home</h2>
+        </div>
+        <button id="profileButton" class="profile-btn" aria-label="Profil">M</button>
+      </header>
+
+      <div class="hero">
+        <p class="eyebrow">YOUR PERSONAL HUB</p>
+        <h1 id="welcomeTitle">Welcome.</h1>
+        <p class="muted">Semua yang lu butuhin, ada di satu tempat.</p>
+      </div>
+
+      <div class="quick-grid">
+        <button class="glass quick-card" data-page="games">
+          <span class="icon">▦</span>
+          <strong>Game</strong>
+          <small>Game favorit lu</small>
+        </button>
+        <button class="glass quick-card" data-page="finance">
+          <span class="icon">Rp</span>
+          <strong>Finance</strong>
+          <small>Catatan keuangan</small>
+        </button>
+        <button class="glass quick-card" data-page="profile">
+          <span class="icon">◎</span>
+          <strong>Profil</strong>
+          <small>Akun lu</small>
+        </button>
+      </div>
+
+      <nav class="bottom-nav glass">
+        <button class="nav-item active" data-page="home"><span>⌂</span><small>Home</small></button>
+        <button class="nav-item" data-page="games"><span>▦</span><small>Game</small></button>
+        <button class="nav-item" data-page="finance"><span>Rp</span><small>Finance</small></button>
+        <button class="nav-item" data-page="settings"><span>⚙</span><small>Pengaturan</small></button>
+      </nav>
+    </section>
+
+    <section id="gamesScreen" class="screen page-screen hidden">
+      <header class="page-header">
+        <button class="back-btn" data-page="home">←</button>
+        <div><p class="eyebrow">MYHUB V2</p><h2>Game</h2></div>
+      </header>
+      <div class="page-content">
+        <p class="muted intro">Folder game lu.</p>
+        <div class="game-grid">
+          <div class="glass game-card"><div class="game-icon">FF</div><strong>Free Fire</strong><small>Game</small></div>
+          <div class="glass game-card"><div class="game-icon">ML</div><strong>Mobile Legends</strong><small>Game</small></div>
+          <div class="glass game-card"><div class="game-icon">MC</div><strong>Magic Chess</strong><small>Game</small></div>
+          <div class="glass game-card"><div class="game-icon">BB</div><strong>Block Blast</strong><small>Game</small></div>
+        </div>
+      </div>
+      <nav class="bottom-nav glass">
+        <button class="nav-item" data-page="home"><span>⌂</span><small>Home</small></button>
+        <button class="nav-item active" data-page="games"><span>▦</span><small>Game</small></button>
+        <button class="nav-item" data-page="finance"><span>Rp</span><small>Finance</small></button>
+        <button class="nav-item" data-page="settings"><span>⚙</span><small>Pengaturan</small></button>
+      </nav>
+    </section>
+
+    <section id="financeScreen" class="screen page-screen hidden">
+      <header class="page-header">
+        <button class="back-btn" data-page="home">←</button>
+        <div><p class="eyebrow">MYHUB V2</p><h2>Finance</h2></div>
+      </header>
+      <div class="page-content">
+        <div class="glass balance-card">
+          <small>Saldo</small>
+          <strong>Rp 0</strong>
+        </div>
+        <div class="glass empty-card">
+          <strong>Catatan keuangan</strong>
+          <p class="muted">Fitur transaksi kita kembangkan setelah tampilan utama beres.</p>
+        </div>
+      </div>
+      <nav class="bottom-nav glass">
+        <button class="nav-item" data-page="home"><span>⌂</span><small>Home</small></button>
+        <button class="nav-item" data-page="games"><span>▦</span><small>Game</small></button>
+        <button class="nav-item active" data-page="finance"><span>Rp</span><small>Finance</small></button>
+        <button class="nav-item" data-page="settings"><span>⚙</span><small>Pengaturan</small></button>
+      </nav>
+    </section>
+
+    <section id="profileScreen" class="screen page-screen hidden">
+      <header class="page-header">
+        <button class="back-btn" data-page="home">←</button>
+        <div><p class="eyebrow">MYHUB V2</p><h2>Profil</h2></div>
+      </header>
+      <div class="page-content">
+        <div class="glass profile-card">
+          <div id="profileAvatar" class="large-avatar">M</div>
+          <h3 id="profileEmail">-</h3>
+          <p class="muted">Akun MyHub V2</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="settingsScreen" class="screen page-screen hidden">
+      <header class="page-header">
+        <button class="back-btn" data-page="home">←</button>
+        <div><p class="eyebrow">MYHUB V2</p><h2>Pengaturan</h2></div>
+      </header>
+      <div class="page-content">
+        <div class="glass settings-card">
+          <div><strong>Akun</strong><span id="settingsEmail">-</span></div>
+          <button id="logoutButton" class="danger-btn">Keluar akun</button>
+        </div>
+      </div>
+      <nav class="bottom-nav glass">
+        <button class="nav-item" data-page="home"><span>⌂</span><small>Home</small></button>
+        <button class="nav-item" data-page="games"><span>▦</span><small>Game</small></button>
+        <button class="nav-item" data-page="finance"><span>Rp</span><small>Finance</small></button>
+        <button class="nav-item active" data-page="settings"><span>⚙</span><small>Pengaturan</small></button>
+      </nav>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
